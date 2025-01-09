@@ -15,8 +15,13 @@
  */
 package com.ichi2.anki.ui.windows.reviewer.autoadvance
 
+import com.ichi2.anki.CollectionManager.TR
+import com.ichi2.anki.Reviewer
+import com.ichi2.anki.cardviewer.ViewerCommand
+import com.ichi2.anki.snackbar.showSnackbar
 import com.ichi2.libanki.DeckConfig
 import com.ichi2.libanki.DeckConfig.Companion.QUESTION_ACTION
+import timber.log.Timber
 
 enum class QuestionAction(
     val code: Int,
@@ -24,6 +29,23 @@ enum class QuestionAction(
     SHOW_ANSWER(0),
     SHOW_REMINDER(1),
     ;
+
+    fun execute(reviewer: Reviewer) {
+        val action = this.toCommand()
+        if (action != null) {
+            Timber.i("Executing %s", action)
+            reviewer.executeCommand(action)
+        } else {
+            reviewer.showSnackbar(TR.studyingQuestionTimeElapsed())
+        }
+    }
+
+    /** Convert to a [ViewerCommand] */
+    private fun toCommand(): ViewerCommand? =
+        when (this) {
+            SHOW_ANSWER -> ViewerCommand.SHOW_ANSWER
+            SHOW_REMINDER -> null
+        }
 
     companion object {
         fun from(code: Int): QuestionAction = entries.firstOrNull { it.code == code } ?: SHOW_ANSWER
